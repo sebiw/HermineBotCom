@@ -2,10 +2,7 @@
 
 namespace HermineBotCom;
 
-/**
- *
- */
-class Message extends AbstractMessage {
+class Content extends AbstractMessage {
 
     /**
      * @var string
@@ -15,18 +12,18 @@ class Message extends AbstractMessage {
     /**
      * @var string
      */
-    protected string $channel = '';
+    protected string $key = '';
 
     /**
      * @param string $message
-     * @param string $channel
+     * @param string $key
      * @param string $context
      * @param \DateTime|null $createdDateTime
      */
-    public function __construct( string $message , string $channel , string $context , ?\DateTime $createdDateTime = null )
+    public function __construct( string $message , string $key , string $context , ?\DateTime $createdDateTime = null )
     {
         $this->message = $message;
-        $this->channel = $channel;
+        $this->key = $key;
         parent::__construct( $context , $createdDateTime );
     }
 
@@ -41,9 +38,9 @@ class Message extends AbstractMessage {
     /**
      * @return string
      */
-    public function getChannel(): string
+    public function getKey(): string
     {
-        return $this->channel;
+        return $this->key;
     }
 
 }

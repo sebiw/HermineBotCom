@@ -2,22 +2,20 @@
 
 namespace HermineBotCom;
 
-class Placeholder {
+/**
+ * Sends Actively placeholder information
+ */
+class Placeholder extends AbstractMessage {
 
     protected string $message = '';
 
     protected string $key = '';
 
-    protected string $context = '';
-
-    protected \DateTime $createdDateTime;
-
     public function __construct( string $message , string $key , string $context , ?\DateTime $createdDateTime = null )
     {
-        $this->createdDateTime = $createdDateTime ?? new \DateTime();
         $this->message = $message;
         $this->key = $key;
-        $this->context = $context;
+        parent::__construct( $context , $createdDateTime );
     }
 
     /**
@@ -34,22 +32,6 @@ class Placeholder {
     public function getKey(): string
     {
         return $this->key;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContext(): string
-    {
-        return $this->context;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedDateTime(): \DateTime
-    {
-        return $this->createdDateTime;
     }
 
 }
