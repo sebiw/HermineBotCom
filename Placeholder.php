@@ -7,14 +7,14 @@ namespace HermineBotCom;
  */
 class Placeholder extends AbstractMessage {
 
-    protected string $message = '';
-
-    protected string $key = '';
-
-    public function __construct( string $message , string $key , string $context , ?\DateTime $createdDateTime = null )
+    /**
+     * @param string $message
+     * @param string $key
+     * @param string $context
+     * @param \DateTime|null $createdDateTime
+     */
+    public function __construct( protected readonly string $message , protected readonly string $key , string $context , ?\DateTime $createdDateTime = null )
     {
-        $this->message = $message;
-        $this->key = $key;
         parent::__construct( $context , $createdDateTime );
     }
 

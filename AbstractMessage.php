@@ -5,31 +5,27 @@ namespace HermineBotCom;
 abstract class AbstractMessage {
 
     /**
-     * @var string
-     */
-    protected string $context = '';
-
-    /**
      * @var \DateTime
      */
-    protected \DateTime $createdDateTime;
+    protected readonly \DateTime $createdDateTime;
 
     /**
      * @param string $context
      * @param \DateTime|null $createdDateTime
      */
-    public function __construct( string $context , ?\DateTime $createdDateTime = null )
+    public function __construct( protected readonly string $context , ?\DateTime $createdDateTime = null )
     {
-        $this->createdDateTime = $createdDateTime ?? new \DateTime();
-        $this->context = $context;
+        $this->createdDateTime = $createdDateTime !== null ? clone $createdDateTime : new \DateTime();
     }
 
     /**
+     * Returns a copy, so callers cannot modify the stored timestamp
+     *
      * @return \DateTime
      */
     public function getCreatedDateTime(): \DateTime
     {
-        return $this->createdDateTime;
+        return clone $this->createdDateTime;
     }
 
     /**

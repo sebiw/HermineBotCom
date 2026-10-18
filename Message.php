@@ -8,25 +8,13 @@ namespace HermineBotCom;
 class Message extends AbstractMessage {
 
     /**
-     * @var string
-     */
-    protected string $message = '';
-
-    /**
-     * @var string
-     */
-    protected string $channel = '';
-
-    /**
      * @param string $message
      * @param string $channel
      * @param string $context
      * @param \DateTime|null $createdDateTime
      */
-    public function __construct( string $message , string $channel , string $context , ?\DateTime $createdDateTime = null )
+    public function __construct( protected readonly string $message , protected readonly string $channel , string $context , ?\DateTime $createdDateTime = null )
     {
-        $this->message = $message;
-        $this->channel = $channel;
         parent::__construct( $context , $createdDateTime );
     }
 
