@@ -9,13 +9,39 @@ Kommunikation mit bzw. zwischen Komponenten eines Hermine-Bots (Messenger
 „Hermine“). Die Klassen sind reine, unveränderliche Wertobjekte: Sie werden
 über den Konstruktor befüllt und bieten nur Getter – keine Logik, keine I/O.
 
-Im Repository selbst gibt es keinen Einstiegspunkt. Die Klassen werden von zwei
-Projekten als Git-Submodule (`submodule/HermineBotCom`) eingebunden:
+Im Repository selbst gibt es keinen Einstiegspunkt. Verarbeitet werden die
+Nachrichten im HermineBot von `HermineMessageHandler` bzw. `HerminePlaceholderHandler`.
 
-- **StAN-Manager** (Producer) – erzeugt `Message`/`Placeholder` und schickt sie per
-  Symfony Messenger (`async`-Transport) ab.
-- **HermineBot** (Consumer) – verarbeitet sie in `HermineMessageHandler` bzw.
-  `HerminePlaceholderHandler`.
+## Projektverbund
+
+Dieses Projekt ist Teil eines Verbunds aus drei Repositories, die zusammen betrieben werden. Änderungen an einer Schnittstelle wirken sich auf die anderen aus.
+
+| Projekt | Rolle |
+|---|---|
+| [StAN-Manager](https://github.com/sebiw/StAN-Manager) (privat) | Material- und Vorgangsverwaltung. **Producer**: stellt Statusänderungen als `HermineBotCom\Message` in die Queue. **API**: liefert Reports unter `/api/open-messages` und `/api/open-files` (JSON-POST mit API-Benutzer und Key). |
+| [HermineBot](https://github.com/sebiw/HermineBot) | Bot für den Messenger Hermine (Stashcat). **Consumer**: verarbeitet die Queue (`messenger:consume`) und sendet an Hermine; ruft die Reports des StAN-Managers per REST als Platzhalter ab. |
+| [HermineBotCom](https://github.com/sebiw/HermineBotCom) | Gemeinsame Nachrichtenklassen (`Message`, `Placeholder`, `AbstractMessage`), in beiden Anwendungen als Submodule `submodule/HermineBotCom` eingebunden. |
+
+**Schnittstellen**
+
+- **Queue**: Symfony Messenger, Doctrine-Transport auf eine gemeinsame Datenbank `messages` (`auto_setup=0`). Nachrichten werden mit PHP `serialize()` übertragen – Klassen- und Property-Namen von HermineBotCom bestimmen das Format.
+- **REST**: Der Bot ruft die Report-Endpunkte des StAN-Managers auf; die Antwort (`content`) wird als Platzhaltertext in Bot-Nachrichten eingesetzt.
+- **Submodule**: Lokal gilt der im jeweiligen Projekt gepinnte Commit. Produktiv werden die drei Repos getrennt bereitgestellt; dort zählt, was zuletzt von `main` bereitgestellt wurde – Submodule werden nicht automatisch mitgezogen.
+
+**Wer hier etwas ändert, prüft dort**
+
+| Änderung an … | Auswirkung / prüfen |
+|---|---|
+| HermineBotCom-Klassen | Abwärtskompatibel halten (alte Nachrichten in der Queue). Submodule in StAN-Manager **und** HermineBot aktualisieren; Messenger-Routing (StAN-Manager) und Handler (HermineBot) anpassen; beide produktiv bereitstellen. |
+| Neuer Nachrichtentyp | Klasse in HermineBotCom, Routing im StAN-Manager, `#[AsMessageHandler]` im HermineBot. |
+| `/api/*` im StAN-Manager | Platzhalter-Konfiguration des Bots (REST-Endpunkte) und erwartetes Antwortformat (`content`) prüfen; Breaking Change = MAJOR. |
+| Workflow/Status im StAN-Manager | Texte, die über die Queue an Hermine gehen, ggf. anpassen. |
+| Queue-Konfiguration (Transport, DB `messages`) | In beiden Anwendungen identisch halten. |
+| PHP-/Symfony-Version | Nur gemeinsam für alle drei Projekte anheben (HermineBotCom: keine Features über die gemeinsame PHP-Version hinaus). |
+
+**Interne Informationen**
+
+Hosting-Anbieter, Hostnamen, Produktiv-URLs, Server-Pfade, Benutzer- und Kanalnamen, Zugangsdaten und Momentaufnahmen des Live-Stands gehören **nicht** in dieses Repo (auch nicht in Commits, Issues oder PRs). Sie werden außerhalb von Git in einer privaten Betriebsdoku gepflegt, die lokal über `CLAUDE.local.md` geladen wird. Ein lokaler Pre-commit-Hook prüft Commits auf solche Angaben.
 
 ## Kompatibilität (wichtig)
 
@@ -93,9 +119,8 @@ Bestehenden Stil exakt beibehalten:
    `parent::__construct( $context , $createdDateTime );`.
 3. Nur Getter ergänzen.
 4. `php -l` ausführen und die Tabelle oben in dieser Datei aktualisieren.
-5. In StAN-Manager das Messenger-Routing (`config/packages/messenger.yaml`) und in
-   HermineBot einen passenden `#[AsMessageHandler]` ergänzen; Submodule in beiden
-   Projekten aktualisieren und in beiden Plesk-Repos pullen (siehe „Deployment“).
+5. Routing, Handler, Submodule und Bereitstellung in StAN-Manager und HermineBot
+   nachziehen (siehe „Projektverbund“ und „Deployment“).
 
 Hinweis: Die Typen `AnnounceCommands`, `Content` und `RequestContent` wurden in
 Commit `3eab91f` bewusst wieder entfernt – nicht ohne Rückfrage wiederherstellen.
@@ -104,24 +129,17 @@ Commit `3eab91f` bewusst wieder entfernt – nicht ohne Rückfrage wiederherstel
 
 - Hauptbranch: `main`. Commit-Messages bisher kurz, englisch, Präfix im Stil
   `ADD …` / `Refactored …`.
-- Achtung Zeilenenden: Die Windows-Arbeitskopie enthält teils CRLF, das Repository
-  LF. Unter WSL zeigt `git status` solche Dateien als geändert, obwohl
-  `git diff --ignore-cr-at-eol` leer ist. Reine Zeilenenden-Änderungen nicht
-  committen; geänderte Dateien vor dem Commit auf LF bringen.
+- Zeilenenden: Repository LF, Arbeitsverzeichnis CRLF. In WSL muss
+  `core.autocrlf=true` gesetzt sein, sonst erscheinen alle Dateien als geändert.
+  Reine Zeilenenden-Änderungen nicht committen.
 - Nur committen/pushen, wenn der Nutzer es ausdrücklich verlangt.
 
 ## Deployment
 
-- **Lokal** (Entwicklung von HermineBot / StAN-Manager) zählt der im jeweiligen
-  Projekt gepinnte Submodule-Commit (`git submodule update --remote` + Commit dort).
-- **Produktiv** zählt das nicht: Der Server (Plesk) hat für HermineBotCom zwei eigene
-  Git-Repos, die `main` in den Submodule-Ordner der jeweiligen Domain bereitstellen –
-  eines für StAN-Manager, eines für HermineBot. Live ist, was dort zuletzt per
-  Plesk-Pull bereitgestellt wurde.
-- Es gibt keinen GitHub-Webhook. Ein Push auf `main` geht **nicht** automatisch live;
-  bereitgestellt wird erst, wenn in Plesk „Jetzt Pull ausführen“ geklickt wird.
-- Bei einer Änderung immer **beide** Plesk-Repos pullen, sonst laufen Producer und
-  Consumer mit unterschiedlichen Klassen. Lang laufende Prozesse (StAN-Manager-Daemon,
-  Messenger-Worker von HermineBot) übernehmen neuen Code erst nach einem Neustart.
-- Server-Aktionen (Pull, Neustart) nur durch den Nutzer oder mit seiner ausdrücklichen
-  Freigabe.
+- Lokal und produktiv gelten unterschiedliche Stände (siehe „Schnittstellen“ unter
+  „Projektverbund“). Ein Push auf `main` geht **nicht** automatisch live.
+- Produktiv wird HermineBotCom für StAN-Manager und HermineBot getrennt bereitgestellt.
+  Bei einer Änderung immer **beide** Kopien bereitstellen, sonst laufen Producer und
+  Consumer mit unterschiedlichen Klassen.
+- Bereitstellung und sonstige Server-Aktionen nur durch den Nutzer oder mit seiner
+  ausdrücklichen Freigabe.
