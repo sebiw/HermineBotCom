@@ -43,6 +43,10 @@ Dieses Projekt ist Teil eines Verbunds aus drei Repositories, die zusammen betri
 
 Hosting-Anbieter, Hostnamen, Produktiv-URLs, Server-Pfade, Benutzer- und Kanalnamen, Zugangsdaten und Momentaufnahmen des Live-Stands gehören **nicht** in dieses Repo (auch nicht in Commits, Issues oder PRs). Sie werden außerhalb von Git in einer privaten Betriebsdoku gepflegt, die lokal über `CLAUDE.local.md` geladen wird. Ein lokaler Pre-commit-Hook prüft Commits auf solche Angaben.
 
+**Commit, Tag und Push**
+
+Agenten committen, taggen und pushen in keinem der drei Repos eigenständig – auch nicht bei Changelog-Einträgen oder Releases. Änderungen fertig vorbereiten, Aufteilung und Commit-Message vorschlagen und auf ausdrückliche Freigabe des Nutzers warten. Eine Freigabe gilt nur für den besprochenen Umfang; Push braucht eine eigene Freigabe.
+
 ## Kompatibilität (wichtig)
 
 Die Objekte werden mit dem Standard-Serializer von Symfony Messenger (PHP
@@ -132,7 +136,7 @@ Commit `3eab91f` bewusst wieder entfernt – nicht ohne Rückfrage wiederherstel
 - Zeilenenden: Repository LF, Arbeitsverzeichnis CRLF. In WSL muss
   `core.autocrlf=true` gesetzt sein, sonst erscheinen alle Dateien als geändert.
   Reine Zeilenenden-Änderungen nicht committen.
-- Nur committen/pushen, wenn der Nutzer es ausdrücklich verlangt.
+- Nur committen, taggen oder pushen, wenn der Nutzer es ausdrücklich freigibt (siehe „Commit, Tag und Push“).
 
 ## Deployment
 
