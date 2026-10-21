@@ -86,12 +86,18 @@ new Placeholder(string $message, string $key, string $context, ?\DateTime $creat
 
 ## Tooling & Umgebung
 
-- **PHP 8.1** – Mindestversion von HermineBot und StAN-Manager (`"php": ">=8.1"`).
-  Features ab 8.2 (z. B. `readonly`-Klassen, DNF-Types, Konstanten in Traits) sind
-  **nicht** erlaubt. Ein Versionssprung erfolgt nur gemeinsam für alle drei Projekte.
+- **PHP-Version**: HermineBot und StAN-Manager werden auf PHP 8.5 / Symfony 7.4 LTS
+  umgestellt (Stand 2026-10-21, schrittweise). Solange noch eine der beiden Anwendungen
+  auf PHP 8.1 läuft, muss der Code hier **PHP-8.1-kompatibel** bleiben: keine Features ab
+  8.2 (z. B. `readonly`-Klassen, DNF-Types, Konstanten in Traits). Erst wenn beide
+  Anwendungen produktiv auf der neuen Version laufen, darf die Mindestversion angehoben
+  werden – und auch dann nur gemeinsam für alle drei Projekte.
+- Die Serialisierung der Klassen ist zwischen PHP 8.1 und 8.5 identisch (geprüft
+  2026-10-21); Nachrichten in der Queue bleiben beim Versionswechsel lesbar.
 - Kein Composer, kein Autoloader, keine Tests, kein Linter/CI. Nichts davon
   ungefragt einführen.
-- Syntaxprüfung bei Bedarf: `php -l <Datei>.php`.
+- Syntaxprüfung bei Bedarf: `php -l <Datei>.php` – während der Umstellung mit beiden
+  Versionen (`php8.1 -l` und `php8.5 -l`).
 - IDE: PhpStorm (`.idea/` ist per `.gitignore` ausgeschlossen).
 
 ## Code-Konventionen
