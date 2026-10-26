@@ -139,8 +139,8 @@ Commit `3eab91f` bewusst wieder entfernt – nicht ohne Rückfrage wiederherstel
 
 - Hauptbranch: `main`. Commit-Messages bisher kurz, englisch, Präfix im Stil
   `ADD …` / `Refactored …`.
-- Zeilenenden: Repository LF, Arbeitsverzeichnis CRLF. In WSL muss
-  `core.autocrlf=true` gesetzt sein, sonst erscheinen alle Dateien als geändert.
+- Zeilenenden: Repository und Arbeitsverzeichnis LF, `core.autocrlf=input`
+  (Projekt liegt im WSL-Dateisystem unter `~/projects/`).
   Reine Zeilenenden-Änderungen nicht committen.
 - Nur committen, taggen oder pushen, wenn der Nutzer es ausdrücklich freigibt (siehe „Commit, Tag und Push“).
 
